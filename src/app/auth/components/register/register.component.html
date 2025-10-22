@@ -1,0 +1,41 @@
+<div class="container mt-5" style="max-width: 400px">
+  <h2 class="mb-4 text-center">Registrar Usuário</h2>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+
+  <form (ngSubmit)="submit()">
+    <div class="mb-3">
+      <label for="name" class="form-label">Nome</label>
+      <input type="text" id="name" class="form-control" [(ngModel)]="name" name="name" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input
+        type="email"
+        id="email"
+        class="form-control"
+        [(ngModel)]="email"
+        name="email"
+        required
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="password" class="form-label">Senha</label>
+      <input
+        type="password"
+        id="password"
+        class="form-control"
+        [(ngModel)]="password"
+        name="password"
+        required
+      />
+    </div>
+
+    <button type="submit" class="btn btn-success w-100" [disabled]="loading">
+      {{ loading ? 'Registrando...' : 'Registrar' }}
+    </button>
+  </form>
+</div>

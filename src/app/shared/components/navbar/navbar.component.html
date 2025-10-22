@@ -1,0 +1,18 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/">JuntosApp</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item" *ngIf="auth.isLoggedIn()">
+          <a class="nav-link" routerLink="/users">Usuários</a>
+        </li>
+        <li class="nav-item" *ngIf="auth.isLoggedIn() && auth.getToken()">
+          <a class="nav-link" routerLink="/admin">Admin</a>
+        </li>
+      </ul>
+      <button *ngIf="auth.isLoggedIn()" class="btn btn-outline-light" (click)="logout()">
+        Logout
+      </button>
+    </div>
+  </div>
+</nav>

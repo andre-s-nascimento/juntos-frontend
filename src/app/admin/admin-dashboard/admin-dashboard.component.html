@@ -1,0 +1,89 @@
+<div class="container mt-4">
+  <h2>Painel Administrativo</h2>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <!-- Formulário de criação/edição -->
+  <div class="card mb-4">
+    <div class="card-header">
+      {{ isEditing ? 'Editar Usuário' : 'Criar Usuário' }}
+    </div>
+    <div class="card-body">
+      <div *ngIf="formError" class="alert alert-danger">{{ formError }}</div>
+      <div *ngIf="formSuccess" class="alert alert-success">{{ formSuccess }}</div>
+
+      <form (ngSubmit)="submit()">
+        <div class="mb-3">
+          <label class="form-label">Nome</label>
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="selectedUser.name"
+            name="name"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            [(ngModel)]="selectedUser.email"
+            name="email"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Senha</label>
+          <input
+            type="password"
+            class="form-control"
+            [(ngModel)]="selectedUser.password"
+            name="password"
+            [required]="!isEditing"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Papel</label>
+          <select class="form-select" [(ngModel)]="selectedUser.role" name="role">
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-success me-2">
+          {{ isEditing ? 'Atualizar' : 'Criar' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="clearForm()">Cancelar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabela de usuários -->
+  <table class="table table-striped" *ngIf="users.length">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Email</th>
+        <th>Papel</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.name }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.role || 'USER' }}</td>
+        <td>
+          <button class="btn btn-sm btn-primary me-2" (click)="selectUser(user)">Editar</button>
+          <button class="btn btn-sm btn-danger" (click)="deleteUser(user.id)">Excluir</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!users.length" class="text-muted">Nenhum usuário encontrado.</div>
+</div>

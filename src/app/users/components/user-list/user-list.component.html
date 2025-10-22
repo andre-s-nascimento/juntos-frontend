@@ -1,0 +1,30 @@
+<div class="container mt-4">
+  <h2>Lista de Usuários</h2>
+
+  <div *ngIf="loading">Carregando...</div>
+  <div *ngIf="error" class="text-danger">{{ error }}</div>
+
+  <table *ngIf="!loading && users.length" class="table table-striped">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Email</th>
+        <th>Papel</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.name }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.role || 'USER' }}</td>
+        <td>
+          <button class="btn btn-sm btn-primary me-2" (click)="edit(user.id)">Editar</button>
+          <button class="btn btn-sm btn-danger" (click)="delete(user.id)">Excluir</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!loading && users.length === 0" class="text-muted">Nenhum usuário encontrado.</div>
+</div>
