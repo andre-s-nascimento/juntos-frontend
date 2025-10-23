@@ -1,10 +1,19 @@
 <div class="container mt-4">
   <h2>Lista de Usuários</h2>
 
-  <div *ngIf="loading">Carregando...</div>
-  <div *ngIf="error" class="text-danger">{{ error }}</div>
+  <!-- Carregando -->
+  @if (loading) {
+  <div>Carregando...</div>
+  }
 
-  <table *ngIf="!loading && users.length" class="table table-striped">
+  <!-- Erro -->
+  @if (error) {
+  <div class="text-danger">{{ error }}</div>
+  }
+
+  <!-- Tabela de usuários -->
+  @if (!loading && users.length > 0) {
+  <table class="table table-striped">
     <thead>
       <tr>
         <th>Nome</th>
@@ -14,17 +23,23 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let user of users">
+      @for (user of users; track user.id) {
+      <tr>
         <td>{{ user.name }}</td>
         <td>{{ user.email }}</td>
         <td>{{ user.role || 'USER' }}</td>
         <td>
-          <button class="btn btn-sm btn-primary me-2" (click)="edit(user.id)">Editar</button>
-          <button class="btn btn-sm btn-danger" (click)="delete(user.id)">Excluir</button>
+          <button class="btn btn-sm btn-primary me-2" (click)="edit(user.id!)">Editar</button>
+          <button class="btn btn-sm btn-danger" (click)="delete(user.id!)">Excluir</button>
         </td>
       </tr>
+      }
     </tbody>
   </table>
+  }
 
-  <div *ngIf="!loading && users.length === 0" class="text-muted">Nenhum usuário encontrado.</div>
+  <!-- Nenhum usuário -->
+  @if (!loading && users.length === 0) {
+  <div class="text-muted">Nenhum usuário encontrado.</div>
+  }
 </div>

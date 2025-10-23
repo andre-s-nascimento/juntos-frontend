@@ -1,5 +1,11 @@
-@import './app/app.scss';
+@use './app/app.scss' as app;
+
 body {
   margin: 0;
   font-family: Inter, Arial, sans-serif;
+}
+
+// Se você quiser usar as classes do app.scss diretamente
+.container {
+  @extend .container;
 }
