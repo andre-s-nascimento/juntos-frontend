@@ -1,119 +1,193 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
 import { RegisterUser, User } from '../../users/user.model';
 import { UserService } from '../../core/services/user.service';
 import { AuthService } from '../../core/services/auth.service';
+
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './admin-dashboard.component.html',
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
+  private readonly userService = inject(UserService);
+  private readonly authService = inject(AuthService);
+  private readonly destroy$ = new Subject<void>();
+
   users: User[] = [];
   loading = false;
   error: string | null = null;
 
-  // Formulário de criação/edição
-  selectedUser: Partial<RegisterUser & { id?: string }> = {};
+  // Controle de visualização
+  showForm = false;
   isEditing = false;
+
+  // Formulário
+  selectedUser: Partial<RegisterUser & { id?: string }> = {};
   formError: string | null = null;
   formSuccess: string | null = null;
-
-  constructor(private readonly userService: UserService, public auth: AuthService) {}
 
   ngOnInit(): void {
     this.loadUsers();
   }
 
-  loadUsers() {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  loadUsers(): void {
     this.loading = true;
-    this.userService.listAll().subscribe({
-      next: (data) => {
-        this.users = data;
-        this.loading = false;
-      },
-      error: () => {
-        this.error = 'Erro ao carregar usuários';
-        this.loading = false;
-      },
-    });
+    this.error = null;
+
+    this.userService
+      .listAll()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.users = data;
+          this.loading = false;
+        },
+        error: (error) => {
+          this.error = 'Erro ao carregar usuários';
+          this.loading = false;
+          console.error('Load users error:', error);
+        },
+      });
   }
 
-  selectUser(user: User) {
-    this.isEditing = true;
-    this.selectedUser = { ...user, password: '' }; // senha vazia para editar
-  }
-
-  clearForm() {
+  showList(): void {
+    this.showForm = false;
     this.isEditing = false;
     this.selectedUser = {};
-    this.formError = null;
-    this.formSuccess = null;
+    this.clearFormMessages();
   }
 
-  submit() {
-    if (!this.selectedUser.name || !this.selectedUser.email) {
-      this.formError = 'Nome e email são obrigatórios';
+  showCreateForm(): void {
+    this.showForm = true;
+    this.isEditing = false;
+    this.selectedUser = { role: 'USER' };
+    this.clearFormMessages();
+  }
+
+  showEditForm(user: User): void {
+    this.showForm = true;
+    this.isEditing = true;
+    this.selectedUser = {
+      ...user,
+      password: '', // Senha vazia para edição
+    };
+    this.clearFormMessages();
+  }
+
+  submit(): void {
+    this.clearFormMessages();
+
+    if (!this.validateForm()) {
       return;
     }
 
-    const payload: any = {
-      name: this.selectedUser.name!,
-      email: this.selectedUser.email!,
-      role: this.selectedUser.role || 'USER',
-    };
-
-    if (this.selectedUser.password && this.selectedUser.password.trim() !== '') {
-      payload.password = this.selectedUser.password;
-    }
+    const payload = this.buildPayload();
 
     if (this.isEditing && this.selectedUser.id) {
-      this.userService.update(this.selectedUser.id, payload).subscribe({
-        next: () => {
-          this.formSuccess = 'Usuário atualizado com sucesso';
-          this.clearForm();
-          this.loadUsers();
-        },
-        error: (error) => {
-          this.formError = error.error?.error || 'Erro ao atualizar usuário';
-          console.error('Update error:', error);
-        },
-      });
+      this.updateUser(this.selectedUser.id, payload);
     } else {
-      // Criação de usuário (mantém igual)
-      if (!this.selectedUser.password) {
-        this.formError = 'Senha é obrigatória para novo usuário';
-        return;
-      }
-
-      const createFn =
-        payload.role === 'ADMIN'
-          ? this.userService.createAdmin.bind(this.userService)
-          : this.userService.create.bind(this.userService);
-
-      createFn(payload).subscribe({
-        next: () => {
-          this.formSuccess = 'Usuário criado com sucesso';
-          this.clearForm();
-          this.loadUsers();
-        },
-        error: (error) => {
-          this.formError = error.error?.error || 'Erro ao criar usuário';
-          console.error('Create error:', error);
-        },
-      });
+      this.createUser(payload);
     }
   }
 
-  /*   deleteUser(id?: string) {
-    if (!id) return;
-    if (!confirm('Confirmar exclusão do usuário?')) return;
+  private validateForm(): boolean {
+    if (!this.selectedUser.name?.trim() || !this.selectedUser.email?.trim()) {
+      this.formError = 'Nome e email são obrigatórios';
+      return false;
+    }
 
-    this.userService.delete(id).subscribe({
-      next: () => this.loadUsers(),
-      error: () => alert('Erro ao deletar usuário'),
-    });
-  } */
+    if (!this.isEditing && !this.selectedUser.password?.trim()) {
+      this.formError = 'Senha é obrigatória para novo usuário';
+      return false;
+    }
+
+    return true;
+  }
+
+  private buildPayload(): any {
+    const payload: any = {
+      name: this.selectedUser.name!.trim(),
+      email: this.selectedUser.email!.trim(),
+      role: this.selectedUser.role || 'USER',
+    };
+
+    // Incluir senha apenas se fornecida e não vazia
+    if (this.selectedUser.password?.trim()) {
+      payload.password = this.selectedUser.password.trim();
+    }
+
+    return payload;
+  }
+
+  private updateUser(userId: string, payload: any): void {
+    this.loading = true;
+
+    this.userService
+      .update(userId, payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.handleSuccess('Usuário atualizado com sucesso!');
+        },
+        error: (error) => {
+          this.handleError(error, 'Erro ao atualizar usuário');
+        },
+      });
+  }
+
+  private createUser(payload: any): void {
+    this.loading = true;
+
+    // Verificar se a senha está presente
+    if (!payload.password) {
+      console.error('❌ Senha não encontrada no payload');
+      this.formError = 'Senha é obrigatória';
+      this.loading = false;
+      return;
+    }
+
+    const createFn =
+      payload.role === 'ADMIN'
+        ? this.userService.createAdmin.bind(this.userService)
+        : this.userService.create.bind(this.userService);
+
+    createFn(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.handleSuccess('Usuário criado com sucesso!');
+          setTimeout(() => this.showList(), 1500);
+        },
+        error: (error) => {
+          console.error('❌ Erro na criação:', error); // ← DEBUG
+          this.handleError(error, 'Erro ao criar usuário');
+        },
+      });
+  }
+
+  private handleSuccess(message: string): void {
+    this.formSuccess = message;
+    this.loading = false;
+    this.loadUsers();
+  }
+
+  private handleError(error: any, defaultMessage: string): void {
+    this.formError = error.error?.error || defaultMessage;
+    this.loading = false;
+    console.error('Operation error:', error);
+  }
+
+  private clearFormMessages(): void {
+    this.formError = null;
+    this.formSuccess = null;
+  }
 }

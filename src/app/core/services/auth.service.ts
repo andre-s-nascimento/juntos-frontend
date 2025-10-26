@@ -47,6 +47,26 @@ export class AuthService {
     }
   }
 
+  getCurrentUserName(): string {
+    const user = this.getCurrentUser();
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+
+    // Fallback: tenta extrair do token diretamente
+    const token = this.getToken();
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        return decoded.sub?.split('@')[0] || 'Usuário';
+      } catch {
+        return 'Usuário';
+      }
+    }
+
+    return 'Usuário';
+  }
+
   getCurrentUser(): any {
     return this.currentUserSubject.value;
   }

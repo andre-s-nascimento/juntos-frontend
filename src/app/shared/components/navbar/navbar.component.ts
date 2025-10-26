@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
@@ -10,10 +10,28 @@ import { CommonModule } from '@angular/common';
   templateUrl: './navbar.component.html',
 })
 export class NavbarComponent {
-  constructor(public auth: AuthService, private readonly router: Router) {}
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
-  logout() {
-    this.auth.logout();
-    this.router.navigate(['/login']);
+  // ✅ GETTERS para acesso seguro no template
+  get isLoggedIn(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  get currentUserName(): string {
+    return this.authService.getCurrentUserName();
+  }
+
+  get userRole(): string | null {
+    return this.authService.getUserRole();
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/']);
   }
 }

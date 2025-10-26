@@ -1,92 +1,239 @@
 <div class="container mt-4">
-  <h2>Painel Administrativo</h2>
+  <h1 class="h2 mb-4">Painel Administrativo</h1>
 
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <!-- Modo Lista -->
+  @if (!showForm) {
+  <div class="admin-list-view">
+    <!-- Cabeçalho com botão de ação -->
+    <header class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="h4 mb-0">Lista de Usuários</h2>
+      <button
+        type="button"
+        class="btn btn-success"
+        (click)="showCreateForm()"
+        aria-label="Criar novo usuário"
+      >
+        <span class="me-2" aria-hidden="true">+</span>
+        Novo Usuário
+      </button>
+    </header>
 
-  <!-- Formulário de criação/edição -->
-  <div class="card mb-4">
-    <div class="card-header">
-      {{ isEditing ? 'Editar Usuário' : 'Criar Usuário' }}
+    <!-- Mensagem de erro -->
+    @if (error) {
+    <output
+      class="alert alert-danger d-block"
+      role="alert"
+      [attr.aria-live]="error ? 'polite' : null"
+    >
+      {{ error }}
+    </output>
+    }
+
+    <!-- Tabela de usuários -->
+    @if (users.length > 0) {
+    <div class="table-responsive">
+      <table class="table table-striped table-hover" aria-label="Lista de usuários do sistema">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">Nome</th>
+            <th scope="col">Email</th>
+            <th scope="col">Papel</th>
+            <th scope="col" class="text-center">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users; track user.id) {
+          <tr>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.bg-danger]="user.role === 'ADMIN'"
+                [class.bg-primary]="user.role !== 'ADMIN'"
+              >
+                {{ user.role || 'USER' }}
+              </span>
+            </td>
+            <td class="text-center">
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                (click)="showEditForm(user)"
+                [attr.aria-label]="'Editar usuário ' + user.name"
+              >
+                Editar
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
     </div>
-    <div class="card-body">
-      <div *ngIf="formError" class="alert alert-danger">{{ formError }}</div>
-      <div *ngIf="formSuccess" class="alert alert-success">{{ formSuccess }}</div>
+    }
 
-      <form (ngSubmit)="submit()">
-        <div class="mb-3">
-          <label class="form-label">Nome</label>
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="selectedUser.name"
-            name="name"
-            required
-          />
-        </div>
+    <!-- Estado vazio -->
+    @if (users.length === 0 && !loading) {
+    <div class="text-center text-muted py-5">
+      <p class="mb-0">Nenhum usuário encontrado.</p>
+    </div>
+    }
 
-        <div class="mb-3">
-          <label class="form-label">Email</label>
-          <input
-            type="email"
-            class="form-control"
-            [(ngModel)]="selectedUser.email"
-            name="email"
-            required
-          />
-        </div>
+    <!-- Loading state -->
+    @if (loading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary">
+        <span class="visually-hidden">Carregando usuários...</span>
+      </div>
+      <output class="mt-2 text-muted d-block">Carregando usuários...</output>
+    </div>
+    }
+  </div>
+  }
 
-        <div class="mb-3">
-          <label class="form-label">Senha</label>
-          <input
-            type="password"
-            class="form-control"
-            [(ngModel)]="selectedUser.password"
-            name="password"
-            [placeholder]="
-              isEditing ? 'Deixe em branco para manter a senha atual' : 'Senha obrigatória'
-            "
-          />
-          <div class="form-text" *ngIf="isEditing">Deixe em branco para manter a senha atual</div>
-        </div>
+  <!-- Modo Formulário -->
+  @if (showForm) {
+  <div class="admin-form-view">
+    <!-- Cabeçalho do formulário -->
+    <header class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="h4 mb-0">
+        {{ isEditing ? 'Editar Usuário' : 'Criar Novo Usuário' }}
+      </h2>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="showList()"
+        aria-label="Voltar para lista de usuários"
+      >
+        ← Voltar para Lista
+      </button>
+    </header>
 
-        <div class="mb-3">
-          <label class="form-label">Papel</label>
-          <select class="form-select" [(ngModel)]="selectedUser.role" name="role">
-            <option value="USER">USER</option>
-            <option value="ADMIN">ADMIN</option>
-          </select>
-        </div>
+    <!-- Card do formulário -->
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <!-- Mensagens de feedback -->
+        @if (formError) {
+        <output
+          class="alert alert-danger d-block"
+          role="alert"
+          [attr.aria-live]="formError ? 'assertive' : null"
+        >
+          {{ formError }}
+        </output>
+        } @if (formSuccess) {
+        <output
+          class="alert alert-success d-block"
+          [attr.aria-live]="formSuccess ? 'polite' : null"
+        >
+          {{ formSuccess }}
+        </output>
+        }
 
-        <button type="submit" class="btn btn-success me-2">
-          {{ isEditing ? 'Atualizar' : 'Criar' }}
-        </button>
-        <button type="button" class="btn btn-secondary" (click)="clearForm()">Cancelar</button>
-      </form>
+        <!-- Formulário -->
+        <form (ngSubmit)="submit()" #userForm="ngForm" novalidate>
+          <div class="row g-3">
+            <!-- Nome -->
+            <div class="col-md-6">
+              <label for="userName" class="form-label">
+                Nome <span class="text-danger" aria-hidden="true">*</span>
+              </label>
+              <input
+                type="text"
+                id="userName"
+                class="form-control"
+                [(ngModel)]="selectedUser.name"
+                name="name"
+                required
+                placeholder="Digite o nome completo"
+                aria-required="true"
+              />
+            </div>
+
+            <!-- Email -->
+            <div class="col-md-6">
+              <label for="userEmail" class="form-label">
+                Email <span class="text-danger" aria-hidden="true">*</span>
+              </label>
+              <input
+                type="email"
+                id="userEmail"
+                class="form-control"
+                [(ngModel)]="selectedUser.email"
+                name="email"
+                required
+                placeholder="exemplo@email.com"
+                aria-required="true"
+              />
+            </div>
+
+            <!-- Senha -->
+            <div class="col-md-6">
+              <label for="userPassword" class="form-label">
+                Senha @if (!isEditing) {
+                <span class="text-danger" aria-hidden="true">*</span>
+                }
+              </label>
+              <input
+                type="password"
+                id="userPassword"
+                class="form-control"
+                [(ngModel)]="selectedUser.password"
+                name="password"
+                [required]="!isEditing"
+                [placeholder]="isEditing ? 'Deixe em branco para manter a atual' : 'Digite a senha'"
+                [attr.aria-required]="!isEditing"
+              />
+              @if (isEditing) {
+              <div class="form-text">Deixe em branco para manter a senha atual</div>
+              }
+            </div>
+
+            <!-- Papel -->
+            <div class="col-md-6">
+              <label for="userRole" class="form-label">
+                Papel <span class="text-danger" aria-hidden="true">*</span>
+              </label>
+              <select
+                id="userRole"
+                class="form-select"
+                [(ngModel)]="selectedUser.role"
+                name="role"
+                required
+                aria-required="true"
+              >
+                <option value="USER">Usuário</option>
+                <option value="ADMIN">Administrador</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Ações do formulário -->
+          <div class="d-flex gap-2 mt-4">
+            <button
+              type="submit"
+              class="btn btn-success"
+              [disabled]="loading"
+              [attr.aria-label]="(isEditing ? 'Atualizar' : 'Criar') + ' usuário'"
+            >
+              @if (loading) {
+              <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+              }
+              {{ isEditing ? 'Atualizar' : 'Criar' }} Usuário
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              (click)="showList()"
+              aria-label="Cancelar e voltar para lista"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-
-  <!-- Tabela de usuários -->
-  <table class="table table-striped" *ngIf="users.length">
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>Email</th>
-        <th>Papel</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let user of users">
-        <td>{{ user.name }}</td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.role || 'USER' }}</td>
-        <td>
-          <button class="btn btn-sm btn-primary me-2" (click)="selectUser(user)">Editar</button>
-          <!-- <button class="btn btn-sm btn-danger" (click)="deleteUser(user.id)">Excluir</button> -->
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div *ngIf="!users.length" class="text-muted">Nenhum usuário encontrado.</div>
+  }
 </div>

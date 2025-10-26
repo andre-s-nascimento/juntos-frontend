@@ -1,0 +1,86 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body text-center py-5">
+          <!-- Ícone de boas-vindas -->
+          <div class="mb-4">
+            <div class="welcome-icon">
+              <i class="bi bi-emoji-smile display-1 text-primary" aria-hidden="true"></i>
+            </div>
+          </div>
+
+          <!-- Título personalizado -->
+          <h1 class="h2 mb-3 text-dark">Bem-vindo(a) ao JuntosApp!</h1>
+
+          <!-- Mensagem personalizada -->
+          <div class="welcome-message mb-4">
+            <p class="lead text-muted mb-2">
+              Olá, <strong class="text-dark">{{ userName }}</strong
+              >!
+            </p>
+            <p class="mb-0">
+              Você está logado como
+              <span class="badge ms-1" [class.bg-danger]="isAdmin" [class.bg-primary]="!isAdmin">
+                {{ userRole }}
+              </span>
+            </p>
+          </div>
+
+          <!-- Informações de permissão -->
+          <div class="alert alert-light border" role="alert">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-info-circle text-primary me-2" aria-hidden="true"></i>
+              <div class="text-start">
+                <strong class="d-block">Permissões disponíveis:</strong>
+                <small class="text-muted">
+                  {{
+                    isAdmin
+                      ? 'Acesso completo ao sistema administrativo'
+                      : 'Acesso às funcionalidades básicas do sistema'
+                  }}
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botões de ação -->
+          <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+            @if (isAdmin) {
+            <button
+              type="button"
+              class="btn btn-primary btn-lg px-4"
+              (click)="goToAdmin()"
+              aria-label="Ir para painel administrativo"
+            >
+              <i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>
+              Painel Administrativo
+            </button>
+            }
+
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-lg px-4"
+              (click)="goToUsers()"
+              aria-label="Ver lista de usuários"
+            >
+              <i class="bi bi-people me-2" aria-hidden="true"></i>
+              Ver Usuários
+            </button>
+          </div>
+
+          <!-- Link rápido para admin (apenas para admins) -->
+          @if (isAdmin) {
+          <div class="mt-4 pt-3 border-top">
+            <small class="text-muted">
+              Acesso rápido:
+              <a routerLink="/admin" class="text-decoration-none">Painel Admin</a> |
+              <a routerLink="/users" class="text-decoration-none">Lista de Usuários</a>
+            </small>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -15,7 +15,7 @@ export class UserListComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
-  constructor(private userService: UserService, public router: Router) {}
+  constructor(private readonly userService: UserService, public router: Router) {}
 
   ngOnInit(): void {
     this.load();
