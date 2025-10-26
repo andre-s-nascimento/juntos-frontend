@@ -8,7 +8,11 @@ export const RoleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const token = auth.getToken();
   if (!token) return false;
 
-  const decoded: any = jwtDecode(token);
-  const expectedRole = route.data['role'];
-  return decoded.role === expectedRole;
+  try {
+    const decoded: any = jwtDecode(token);
+    const expectedRole = route.data['role'];
+    return decoded.role === expectedRole;
+  } catch {
+    return false;
+  }
 };

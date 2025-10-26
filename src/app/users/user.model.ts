@@ -11,3 +11,10 @@ export interface RegisterUser {
   password: string;
   role?: string;
 }
+
+export interface UpdateUser {
+  name: string;
+  email: string;
+  password?: string;
+  role?: string;
+}

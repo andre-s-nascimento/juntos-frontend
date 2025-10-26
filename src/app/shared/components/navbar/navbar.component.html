@@ -1,18 +1,32 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
     <a class="navbar-brand" routerLink="/">JuntosApp</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item" *ngIf="auth.isLoggedIn()">
-          <a class="nav-link" routerLink="/users">Usuários</a>
-        </li>
-        <li class="nav-item" *ngIf="auth.isLoggedIn() && auth.getToken()">
-          <a class="nav-link" routerLink="/admin">Admin</a>
-        </li>
-      </ul>
-      <button *ngIf="auth.isLoggedIn()" class="btn btn-outline-light" (click)="logout()">
-        Logout
-      </button>
+
+    <div class="navbar-nav ms-auto">
+      <a class="nav-link" routerLink="/users" routerLinkActive="active" *ngIf="auth.isLoggedIn()">
+        Usuários
+      </a>
+
+      <a
+        class="nav-link"
+        routerLink="/admin"
+        routerLinkActive="active"
+        *ngIf="auth.isLoggedIn() && auth.isAdmin()"
+      >
+        Admin
+      </a>
+
+      <ng-container *ngIf="!auth.isLoggedIn()">
+        <a class="nav-link" routerLink="/login" routerLinkActive="active">Login</a>
+        <a class="nav-link" routerLink="/register" routerLinkActive="active">Registrar</a>
+      </ng-container>
+
+      <ng-container *ngIf="auth.isLoggedIn()">
+        <span class="navbar-text me-3">
+          {{ auth.getCurrentUser()?.email }} ({{ auth.getUserRole() }})
+        </span>
+        <button class="btn btn-outline-light btn-sm" (click)="logout()">Logout</button>
+      </ng-container>
     </div>
   </div>
 </nav>

@@ -42,8 +42,11 @@
             class="form-control"
             [(ngModel)]="selectedUser.password"
             name="password"
-            [required]="!isEditing"
+            [placeholder]="
+              isEditing ? 'Deixe em branco para manter a senha atual' : 'Senha obrigatória'
+            "
           />
+          <div class="form-text" *ngIf="isEditing">Deixe em branco para manter a senha atual</div>
         </div>
 
         <div class="mb-3">
@@ -79,7 +82,7 @@
         <td>{{ user.role || 'USER' }}</td>
         <td>
           <button class="btn btn-sm btn-primary me-2" (click)="selectUser(user)">Editar</button>
-          <button class="btn btn-sm btn-danger" (click)="deleteUser(user.id)">Excluir</button>
+          <!-- <button class="btn btn-sm btn-danger" (click)="deleteUser(user.id)">Excluir</button> -->
         </td>
       </tr>
     </tbody>

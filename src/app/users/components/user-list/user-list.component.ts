@@ -40,7 +40,7 @@ export class UserListComponent implements OnInit {
     this.router.navigate(['/admin'], { queryParams: { id: userId } });
   }
 
-  delete(userId?: string) {
+  /*   delete(userId?: string) {
     if (!userId) return;
     if (!confirm('Confirmar exclusão?')) return;
 
@@ -48,5 +48,5 @@ export class UserListComponent implements OnInit {
       next: () => this.load(),
       error: () => alert('Erro ao deletar usuário'),
     });
-  }
+  } */
 }

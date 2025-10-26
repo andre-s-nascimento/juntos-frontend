@@ -6,9 +6,9 @@ import { AppSettings } from '../../app.config';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private base = `${AppSettings.apiBaseUrl}${AppSettings.usersUrl}`;
+  private readonly base = `${AppSettings.apiBaseUrl}${AppSettings.usersUrl}`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   listAll(): Observable<User[]> {
     return this.http.get<User[]>(this.base);
@@ -26,8 +26,12 @@ export class UserService {
     return this.http.post<User>(`${this.base}/admin`, user);
   }
 
-  delete(id?: string): Observable<void> {
-    if (!id) throw new Error('User ID is required');
-    return this.http.delete<void>(`${this.base}/${id}`);
+  update(id: string, user: RegisterUser): Observable<User> {
+    return this.http.put<User>(`${this.base}/${id}`, user);
   }
+
+  // delete(id?: string): Observable<void> {
+  //   if (!id) throw new Error('User ID is required');
+  //   return this.http.delete<void>(`${this.base}/${id}`);
+  // }
 }

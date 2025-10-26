@@ -21,7 +21,7 @@ export class AdminDashboardComponent implements OnInit {
   formError: string | null = null;
   formSuccess: string | null = null;
 
-  constructor(private userService: UserService, public auth: AuthService) {}
+  constructor(private readonly userService: UserService, public auth: AuthService) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -59,33 +59,35 @@ export class AdminDashboardComponent implements OnInit {
       return;
     }
 
-    if (!this.isEditing && !this.selectedUser.password) {
-      this.formError = 'Senha é obrigatória para novo usuário';
-      return;
-    }
-
-    const payload: RegisterUser = {
+    const payload: any = {
       name: this.selectedUser.name!,
       email: this.selectedUser.email!,
-      password: this.selectedUser.password!,
       role: this.selectedUser.role || 'USER',
     };
 
+    if (this.selectedUser.password && this.selectedUser.password.trim() !== '') {
+      payload.password = this.selectedUser.password;
+    }
+
     if (this.isEditing && this.selectedUser.id) {
-      // Atualização: omitimos senha caso vazio
-      if (!payload.password) {
-        delete (payload as any).password;
-      }
-      this.userService.create(payload).subscribe({
+      this.userService.update(this.selectedUser.id, payload).subscribe({
         next: () => {
           this.formSuccess = 'Usuário atualizado com sucesso';
           this.clearForm();
           this.loadUsers();
         },
-        error: () => (this.formError = 'Erro ao atualizar usuário'),
+        error: (error) => {
+          this.formError = error.error?.error || 'Erro ao atualizar usuário';
+          console.error('Update error:', error);
+        },
       });
     } else {
-      // Criação de usuário ou admin
+      // Criação de usuário (mantém igual)
+      if (!this.selectedUser.password) {
+        this.formError = 'Senha é obrigatória para novo usuário';
+        return;
+      }
+
       const createFn =
         payload.role === 'ADMIN'
           ? this.userService.createAdmin.bind(this.userService)
@@ -97,12 +99,15 @@ export class AdminDashboardComponent implements OnInit {
           this.clearForm();
           this.loadUsers();
         },
-        error: () => (this.formError = 'Erro ao criar usuário'),
+        error: (error) => {
+          this.formError = error.error?.error || 'Erro ao criar usuário';
+          console.error('Create error:', error);
+        },
       });
     }
   }
 
-  deleteUser(id?: string) {
+  /*   deleteUser(id?: string) {
     if (!id) return;
     if (!confirm('Confirmar exclusão do usuário?')) return;
 
@@ -110,5 +115,5 @@ export class AdminDashboardComponent implements OnInit {
       next: () => this.loadUsers(),
       error: () => alert('Erro ao deletar usuário'),
     });
-  }
+  } */
 }
